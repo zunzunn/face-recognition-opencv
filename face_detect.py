@@ -6,29 +6,34 @@ import pickle
 with open("my_face.pkl", "rb") as f:
     known_encoding = pickle.load(f)
 
-print(" Starting face recognition... Press ESC to exit")
+print("🚀 Starting face recognition... Press ESC to exit")
 
 cap = cv2.VideoCapture(0)
 
-# ⚡ Lower camera resolution (big FPS boost)
+# ⚡ Lower camera resolution
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-process_this_frame = True  
+process_this_frame = True
+
+# ✅ CRITICAL: initialize these BEFORE loop
+draw_locations = []
+draw_results = []
 
 while True:
     ret, frame = cap.read()
     if not ret:
+        print("❌ Failed to grab frame")
         break
 
+    # ⚡ Resize for speed
     small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
     rgb_small = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
 
-    process_this_frame = not process_this_frame
-
+    # 🔥 Only process every other frame
     if process_this_frame:
         face_locations = face_recognition.face_locations(
-            rgb_small, model="hog"  
+            rgb_small, model="hog"
         )
         face_encodings = face_recognition.face_encodings(
             rgb_small, face_locations
@@ -48,11 +53,13 @@ while True:
             else:
                 results.append(("Face Not Detected", (0, 0, 255), distance))
 
-    
-    if process_this_frame:
+        # ✅ update draw data ONLY when processed
         draw_locations = face_locations
         draw_results = results
 
+    process_this_frame = not process_this_frame
+
+    # 🔹 Draw using last known results
     for (top, right, bottom, left), (label, color, distance) in zip(
         draw_locations, draw_results
     ):
