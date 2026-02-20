@@ -1,0 +1,4 @@
+faceenv311/
+__pycache__/
+*.pkl
+.DS_Store
